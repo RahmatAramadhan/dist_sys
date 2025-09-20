@@ -33,6 +33,10 @@ def main():
         call('add', args.a, args.b)
     if args.op in ('mul','both'):
         call('mul', args.a, args.b)
+    if args.op in ('min','both'):
+        call('min', args.a, args.b)
+    if args.op in ('div','both'):
+        call('div', args.a, args.b)
 
 if __name__ == '__main__':
     sys.exit(main())
