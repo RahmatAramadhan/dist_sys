@@ -215,6 +215,70 @@ saya mengganti inputan pada client agar terlihat perbedaan disisi server. kemudi
 - Terlihat duplicate paket (dua kali kirim & dua kali balas) yang umum dalam eksperimen UDP karena tidak ada jaminan reliabilitas.
 
   ---
-# 4. MQTT
+# 4. MQTT (TCP)
+
 ## 🔹 Cara Kerja
 
+### Publisher (Client pengirim)
+1. Membuat client MQTT menggunakan library `paho-mqtt`.  
+2. Menghubungkan ke broker (misalnya `mqtt-broker:1883`).  
+3. Melakukan **CONNECT** handshake TCP → broker.  
+4. Mengirim data sensor (misalnya suhu) ke topik tertentu dengan perintah `publish()`.  
+5. Mengulangi pengiriman data secara periodik.
+
+### Subscriber (Client penerima)
+1. Membuat client MQTT menggunakan `paho-mqtt`.  
+2. Menghubungkan ke broker (alamat & port sama).  
+3. Melakukan **CONNECT** ke broker lalu **SUBSCRIBE** ke topik (misalnya `sister/temp`).  
+4. Menunggu pesan. Jika broker menerima `PUBLISH` dari publisher, broker akan meneruskan ke subscriber.  
+5. Subscriber menampilkan pesan beserta topik.  
+
+### Broker (Server MQTT)
+- Berperan sebagai perantara komunikasi.  
+- Menerima pesan dari publisher dan mendistribusikannya ke subscriber sesuai topik.  
+- Broker tidak ikut mengolah isi pesan, hanya meneruskan.  
+
+## 🔹 alur Kerja
+Publisher ---> PUBLISH(“Suhu: 28°C”, topik=sister/temp) ---> Broker
+Broker ---> PUBLISH(“Suhu: 28°C”, topik=sister/temp) ---> Subscriber
+
+## 🔹 Percobaan
+disini saya melakukan percobaan dengan 2 terminal, terminal kesatu digunakan sebagai publisher dan terminal kedua digunakan sebagai subscriber. Publisher akan mengirimkan suhu terus menerus dan subscriber akan menerima suhu terus menerus sampai subscriber dihentikan.
+
+### publisher
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/mqtt.yml exec mqtt-publisher python publisher.py
+Menghubungkan ke mqtt-broker...
+Berhasil terhubung ke broker MQTT mqtt-broker
+Published: Suhu: 28°C
+Published: Suhu: 28°C
+Published: Suhu: 28°C
+^C
+Publisher dihentikan.
+```
+
+### subscriber
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/mqtt.yml exec mqtt-subscriber python subscriber.py
+Menghubungkan ke mqtt-broker...
+Berhasil terhubung ke broker MQTT mqtt-broker
+Berlangganan topik: sister/temp
+Menunggu pesan... (Tekan Ctrl+C untuk keluar)
+Received message: Suhu: 28°C (Topic: sister/temp)
+Received message: Suhu: 28°C (Topic: sister/temp)
+Received message: Suhu: 28°C (Topic: sister/temp)
+^C
+Subscriber dihentikan.
+```
+
+Kemudian saya juga mengcapture hasil dari mqtt menggunakan tcpdump yang dibuka menggunakan webshark
+
+<img width="2273" height="1210" alt="Image" src="https://github.com/user-attachments/assets/2f0a0150-1ac0-4c6e-a611-9c329a0e1deb" />
+
+- MQTT berjalan di atas TCP → membutuhkan koneksi yang andal dan berurutan.
+  
+- Publisher mengirim pesan ke broker melalui PUBLISH.
+  
+- Subscriber menerima pesan dari broker setelah SUBSCRIBE.
+  
+- Tcpdump/Wireshark dapat digunakan untuk menganalisis komunikasi, terutama pada port 1883 (tanpa enkripsi).
