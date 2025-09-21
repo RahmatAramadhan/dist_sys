@@ -16,7 +16,7 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ('udp-server', 12345)
 
 # Send data to server
-message = "Hello, UDP server2!"
+message = "Hello, UDP server2! nama saya Rahmat dari Brawijaya"
 client_socket.sendto(message.encode('utf-8'), server_address)
 
 # Receive response from server
