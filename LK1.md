@@ -158,11 +158,12 @@ Received from client: jurusan magister ilmu komputer
 Received from client: exit
 Exiting server.
 ```
+## Webshark
 Kemudian dapat dilihat juga menggunakan webshark untuk melihat proses pengiriman pesan pada protocol TCP
 
+<img width="2270" height="1125" alt="Image" src="https://github.com/user-attachments/assets/e6d44b40-47be-46e7-9e1e-735630e84c85" />
 
-
-
+Pada sisi client dengan alamat ip 172.20.0.3 terlihat adanya pengiriman data ke server melalui port 2222. Kemudian pada sisi server dengan ip 172.20.0.2 merespons paket tersebut. Proses komunikasi dapat dilihat menggunakan protocol TCP, didalamnya berisi data dan konfirmasi penerimaan dari client ke server.
 
 
 
