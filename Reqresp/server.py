@@ -10,7 +10,7 @@ import socket
 
 def server_program():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Bind to all interfaces so other containers can reach the server
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind(('0.0.0.0', 2222))  
     
     server_socket.listen(1)
@@ -24,9 +24,13 @@ def server_program():
             break
         print("Received from client:", data)
         
-        # Respond back to the client
-        response = "Echo: " + data
-        conn.send(response.encode())  
+        if data.lower().strip() == "exit":
+            conn.sendall("Server shutting down.".encode())
+            print("Exiting server.")
+            break
+        else:
+            response = "Echo: " + data
+            conn.send(response.encode())  
     
     conn.close()
 

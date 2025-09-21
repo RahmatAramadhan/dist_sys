@@ -12,17 +12,17 @@ def client_program():
     client_socket = socket.socket()  
     # Use docker compose service DNS name
     client_socket.connect(('reqresp-server', 2222))  
+
     
-    message = input("Enter message: ")  
-    
-    while message.lower().strip() != 'bye':
-        print(type(message.encode()))
-        client_socket.send(message.encode())  
-        data = client_socket.recv(1024).decode()  
-    
-        print('Received from server:', data)  
-        
-        message = input("Enter another message: ")  
+    while True: 
+        message = input("Enter message(type 'exit to exit command'): ")
+        client_socket.sendall(message.encode())
+        data = client_socket.recv(1024).decode()
+        print("Received from server:", data)
+
+        if message.lower().strip() == "exit":
+            print("Connection closed.")
+            break
     
     client_socket.close()
 
