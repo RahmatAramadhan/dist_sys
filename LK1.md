@@ -165,5 +165,56 @@ Kemudian dapat dilihat juga menggunakan webshark untuk melihat proses pengiriman
 
 Pada sisi client dengan alamat ip 172.20.0.3 terlihat adanya pengiriman data ke server melalui port 2222. Kemudian pada sisi server dengan ip 172.20.0.2 merespons paket tersebut. Proses komunikasi dapat dilihat menggunakan protocol TCP, didalamnya berisi data dan konfirmasi penerimaan dari client ke server.
 
+---
 
+# 3. UDP
+
+## 🔹 Cara Kerja
+
+### Server
+1. Membuat socket UDP (`AF_INET`, `SOCK_DGRAM`).  
+2. Bind ke alamat `0.0.0.0:12345`, sehingga bisa menerima paket dari container lain.  
+3. Menunggu pesan dari client (`recvfrom`).  
+4. Mencetak pesan yang diterima beserta alamat pengirim.  
+5. Mengirim balasan ke client dalam format:
+
+### Client
+1. Membuat socket UDP (`AF_INET`, `SOCK_DGRAM`).  
+2. Mengirim pesan teks ke server (`sendto`).  
+3. Menunggu balasan dari server (`recvfrom`) dan menampilkannya.  
+4. Socket ditutup setelah balasan diterima. 
+
+## 🔹 alur Kerja
+Client ---> "Hello, UDP server!" ---> Server  
+Client <--- "Hello, (IP:Port). You said: Hello, UDP server!" <--- Server  
+
+Berikut adalah percobaan menjalankan aplikasi protocol UDP.  
+Client mengirimkan pesan, lalu server merespons balik dengan tambahan informasi alamat pengirim.
+
+### client
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/udp.yml exec udp-client python clientUDP.py
+WARN[0000] /home/rahmat/dist_sys/compose/udp.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+Received from server: Hello, ('172.20.0.5', 55179). You said: Hello, UDP server2! nama saya Rahmat dari Brawijaya
+```
+
+### server
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/udp.yml exec udp-server python serverUDP.py
+WARN[0000] /home/rahmat/dist_sys/compose/udp.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+UDP server up and listening on ('0.0.0.0', 12345)
+Received message from ('172.20.0.5', 33428): Hello, UDP server2! nama saya Rahmat dari Brawijaya
+Received message from ('172.20.0.5', 55179): Hello, UDP server2! nama saya Rahmat dari Brawijaya
+```
+saya mengganti inputan pada client agar terlihat perbedaan disisi server. kemudian saya juga mengcapture menggunakan webshark yang akan menampilkan proses pengiriman data dalam protocol UDP. Berikut adalah hasil capture webshark:
+
+<img width="2281" height="811" alt="Image" src="https://github.com/user-attachments/assets/c5baf6c3-0e21-4e35-8298-6f1d80eae4f6" />
+
+- UDP capture ini memperlihatkan komunikasi request–response sederhana: client mengirim pesan → server membalas.
+- Tidak ada connection setup seperti pada TCP, hanya pengiriman paket satu arah yang kemudian direspons.
+- Terlihat duplicate paket (dua kali kirim & dua kali balas) yang umum dalam eksperimen UDP karena tidak ada jaminan reliabilitas.
+
+  ---
+# 4. MQTT
+## 🔹 Cara Kerja
 
