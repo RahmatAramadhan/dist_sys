@@ -70,4 +70,99 @@ div(100,5) = 20.0
 ---
 # 2. TCP
 
+## 🔹 Cara Kerja
+
+### Server
+1. Membuat socket TCP (`AF_INET`, `SOCK_STREAM`).
+2. Bind ke alamat `0.0.0.0:2222`, sehingga bisa diakses dari container lain.
+3. Listening dan menunggu koneksi client.
+4. Menerima pesan dari client (`recv`) dan mencetaknya.
+5. Mengirimkan balasan ke client dalam format `Echo: <pesan>`.
+6. Jika client mengirim pesan `bye`, server akan membalas dengan `"Goodbye!"` lalu menutup koneksi.
+
+### Client
+1. Membuat socket TCP dan connect ke server (`reqresp-server:2222`).
+2. Mengirim pesan teks ke server (`send`).
+3. Menerima balasan dari server (`recv`) dan menampilkannya.
+4. Proses berulang sampai user mengetik `bye`.
+5. Saat user mengetik `bye`, client mengirimkan pesan ke server lalu menerima balasan `"Goodbye!"` sebelum menutup koneksi.
+
+---
+
+## 🔹 Alur Sederhana
+Client ---> "Hello" ---> Server
+Client <--- "Echo: Hello" <--- Server
+
+Client ---> "bye" ---> Server
+Client <--- "Goodbye!" <--- Server
+
+## menambahkan exit untuk keluar
+saya mencoba menambahkan perintah exit untuk keluar dari client dan server, penambahaan dilakukan didalam file server.py dan client.py
+
+### server.py
+```pyhton
+while True:
+        data = conn.recv(1024).decode()
+        if not data:
+            break
+        print("Received from client:", data)
+        
+        if data.lower().strip() == "exit":
+            conn.sendall("Server shutting down.".encode())
+            print("Exiting server.")
+            break
+        else:
+            response = "Echo: " + data
+            conn.send(response.encode())
+```
+### client.py
+```python
+while True: 
+        message = input("Enter message(type 'exit to exit command'): ")
+        client_socket.sendall(message.encode())
+        data = client_socket.recv(1024).decode()
+        print("Received from server:", data)
+
+        if message.lower().strip() == "exit":
+            print("Connection closed.")
+            break
+```
+
+## percobaan
+berikut adalah percobaan menjalankan aplikasi protocol TCP. Percobaan dilakukan setelah perubahan dalam server dan client, dengan menggunakan perintah exit.
+
+### client
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/reqresp.yml exec reqresp-client python client.py
+WARN[0000] /home/rahmat/dist_sys/compose/reqresp.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+Enter message(type 'exit to exit command'): nama saya rahmat
+Received from server: Echo: nama saya rahmat
+Enter message(type 'exit to exit command'): sasaya berkuliah di universitas brawijaya
+Received from server: Echo: sasaya berkuliah di universitas brawijaya
+Enter message(type 'exit to exit command'): jurusan magister ilmu komputer
+Received from server: Echo: jurusan magister ilmu komputer
+Enter message(type 'exit to exit command'): exit
+Received from server: Server shutting down.
+Connection closed.
+```
+
+### server
+```console
+rahmat@Rahmat:~/dist_sys$ docker compose -f compose/reqresp.yml exec reqresp-server python server.py
+WARN[0000] /home/rahmat/dist_sys/compose/reqresp.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion 
+Server listening on 0.0.0.0:2222
+Connection from: ('172.20.0.3', 38012)
+Received from client: nama saya rahmat
+Received from client: sasaya berkuliah di universitas brawijaya
+Received from client: jurusan magister ilmu komputer
+Received from client: exit
+Exiting server.
+```
+Kemudian dapat dilihat juga menggunakan webshark untuk melihat proses pengiriman pesan pada protocol TCP
+
+
+
+
+
+
 
